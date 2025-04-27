@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Slider } from '@/components/ui/slider';
 
 interface RangeSliderProps {
   duration: number;
@@ -8,16 +9,16 @@ interface RangeSliderProps {
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(100); // Default value to avoid initial blocking
+  const [endTime, setEndTime] = useState(100); // Default initial value to prevent blocking
   
-  // Update range when duration changes (video loaded)
+  // Update range ONLY when duration changes (video loaded)
   useEffect(() => {
     if (duration > 0) {
       setStartTime(0);
       setEndTime(duration);
       onChange(0, duration);
     }
-  }, [duration, onChange]);
+  }, [duration, onChange]); // Only depends on duration changing
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -33,41 +34,39 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
       .join(':');
   };
 
-  // Handler for start time changes - ensures value stays within valid range
+  // Handle start time slider change with proper validation
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartTime = Number(e.target.value);
     
-    // Ensure start time doesn't exceed end time
+    // Strict validation: ensure start time is less than end time
     if (newStartTime >= endTime) {
-      const adjustedStartTime = Math.max(0, endTime - 1);
-      setStartTime(adjustedStartTime);
-      onChange(adjustedStartTime, endTime);
-    } else {
-      setStartTime(newStartTime);
-      onChange(newStartTime, endTime);
+      return; // Prevent invalid state
     }
+    
+    // Update state and notify parent component
+    setStartTime(newStartTime);
+    onChange(newStartTime, endTime);
   };
 
-  // Handler for end time changes - ensures value stays within valid range
+  // Handle end time slider change with proper validation
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEndTime = Number(e.target.value);
     
-    // Ensure end time is not less than start time
+    // Strict validation: ensure end time is greater than start time
     if (newEndTime <= startTime) {
-      const adjustedEndTime = Math.min(duration || 100, startTime + 1);
-      setEndTime(adjustedEndTime);
-      onChange(startTime, adjustedEndTime);
-    } else {
-      setEndTime(newEndTime);
-      onChange(startTime, newEndTime);
+      return; // Prevent invalid state
     }
+    
+    // Update state and notify parent component
+    setEndTime(newEndTime);
+    onChange(startTime, newEndTime);
   };
 
   return (
     <div className="w-full my-4 space-y-6">
       <p className="text-sm text-gray-600 mb-2">Sélectionner l'extrait :</p>
       
-      {/* Start Time Slider */}
+      {/* Start Time Slider - Fully controlled with onChange */}
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-gray-600">Début sélectionné :</span>
@@ -85,7 +84,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
         />
       </div>
       
-      {/* End Time Slider */}
+      {/* End Time Slider - Fully controlled with onChange */}
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-gray-600">Fin sélectionnée :</span>
