@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { Slider } from '@/components/ui/slider';
 
 interface RangeSliderProps {
   duration: number;
@@ -9,7 +8,7 @@ interface RangeSliderProps {
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(duration);
+  const [endTime, setEndTime] = useState(100); // Valeur par défaut pour éviter blocage initial
   
   // Update range when duration changes (video loaded)
   useEffect(() => {
@@ -34,8 +33,9 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
       .join(':');
   };
 
-  const handleStartTimeChange = (value: number[]) => {
-    const newStartTime = value[0];
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartTime = Number(e.target.value);
+    
     // Ensure start time doesn't exceed end time
     if (newStartTime >= endTime) {
       const adjustedStartTime = Math.max(0, endTime - 1);
@@ -47,11 +47,12 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     }
   };
 
-  const handleEndTimeChange = (value: number[]) => {
-    const newEndTime = value[0];
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEndTime = Number(e.target.value);
+    
     // Ensure end time is not less than start time
     if (newEndTime <= startTime) {
-      const adjustedEndTime = Math.min(duration, startTime + 1);
+      const adjustedEndTime = Math.min(duration || 100, startTime + 1);
       setEndTime(adjustedEndTime);
       onChange(startTime, adjustedEndTime);
     } else {
@@ -70,13 +71,14 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           <span className="text-sm text-gray-600">Début sélectionné :</span>
           <span className="text-sm font-mono text-brand-purple">{formatTime(startTime)}</span>
         </div>
-        <Slider 
-          value={[startTime]} 
+        <input 
+          type="range" 
+          value={startTime} 
           min={0} 
           max={duration || 100} 
           step={1}
-          onValueChange={handleStartTimeChange}
-          className="start-slider"
+          onChange={handleStartTimeChange}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-purple"
           aria-label="Sélectionner le début de l'extrait"
         />
       </div>
@@ -87,13 +89,14 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           <span className="text-sm text-gray-600">Fin sélectionnée :</span>
           <span className="text-sm font-mono text-brand-blue">{formatTime(endTime)}</span>
         </div>
-        <Slider 
-          value={[endTime]} 
+        <input 
+          type="range" 
+          value={endTime} 
           min={0} 
           max={duration || 100} 
           step={1}
-          onValueChange={handleEndTimeChange}
-          className="end-slider"
+          onChange={handleEndTimeChange}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-blue"
           aria-label="Sélectionner la fin de l'extrait"
         />
       </div>
