@@ -67,6 +67,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     // Get video duration once the player is ready
     const videoDuration = event.target.getDuration();
     setDuration(videoDuration);
+    setClipStart(0);
     setClipEnd(videoDuration);
     
     // Set up interval to update current time
@@ -110,6 +111,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
   };
 
   const handleRangeChange = (start: number, end: number) => {
+    console.log("Range changed:", start, end); // Debug: confirm values are updating
     setClipStart(start);
     setClipEnd(end);
     

@@ -8,7 +8,7 @@ interface RangeSliderProps {
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(100); // Valeur par défaut pour éviter blocage initial
+  const [endTime, setEndTime] = useState(100); // Default value to avoid initial blocking
   
   // Update range when duration changes (video loaded)
   useEffect(() => {
@@ -33,6 +33,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
       .join(':');
   };
 
+  // Handler for start time changes - ensures value stays within valid range
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartTime = Number(e.target.value);
     
@@ -47,6 +48,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     }
   };
 
+  // Handler for end time changes - ensures value stays within valid range
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEndTime = Number(e.target.value);
     
