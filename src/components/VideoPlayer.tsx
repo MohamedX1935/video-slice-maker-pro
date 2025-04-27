@@ -113,15 +113,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     setClipStart(start);
     setClipEnd(end);
     
-    if (isPreviewMode && playerAPI.current) {
-      playerAPI.current.seekTo(start);
+    // Seek to the newly selected position when changing the range
+    // Only seek to start point when changing the start time
+    if (Math.abs(start - clipStart) > 0.5) {
+      playerAPI.current?.seekTo(start);
     }
   };
 
   const togglePreviewMode = () => {
-    setIsPreviewMode(!isPreviewMode);
+    const newPreviewMode = !isPreviewMode;
+    setIsPreviewMode(newPreviewMode);
     
-    if (!isPreviewMode && playerAPI.current) {
+    if (newPreviewMode && playerAPI.current) {
       // Entering preview mode: Seek to clip start
       playerAPI.current.seekTo(clipStart);
       if (isPlaying) {
@@ -146,12 +149,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
       window.open(youtubeUrl, '_blank');
     }, 3000);
   };
-
-  // Format the clip duration for display
-  const clipDuration = Math.round(clipEnd - clipStart);
-  const minutes = Math.floor(clipDuration / 60);
-  const seconds = clipDuration % 60;
-  const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -198,14 +195,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
         </div>
       </div>
       
-      <div className="bg-gray-50 p-4 rounded-md">
+      <div className="bg-gray-50 p-6 rounded-md">
         <RangeSlider duration={duration} onChange={handleRangeChange} />
-        
-        <div className="mt-4 flex justify-between items-center text-sm">
-          <div className="font-medium">
-            Durée de l'extrait: <span className="text-brand-purple">{formattedDuration}</span>
-          </div>
-        </div>
       </div>
     </div>
   );

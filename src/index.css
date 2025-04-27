@@ -107,4 +107,29 @@
   .clip-slider-range {
     @apply h-2 bg-brand-purple rounded-sm;
   }
+  
+  /* Styles spécifiques pour les sliders start/end */
+  .start-slider [data-orientation="horizontal"] {
+    @apply h-2;
+  }
+  
+  .start-slider .radix-slider-range {
+    @apply bg-brand-purple;
+  }
+  
+  .start-slider .radix-slider-thumb {
+    @apply h-5 w-5 border-2 border-brand-purple;
+  }
+  
+  .end-slider [data-orientation="horizontal"] {
+    @apply h-2;
+  }
+  
+  .end-slider .radix-slider-range {
+    @apply bg-brand-blue;
+  }
+  
+  .end-slider .radix-slider-thumb {
+    @apply h-5 w-5 border-2 border-brand-blue;
+  }
 }

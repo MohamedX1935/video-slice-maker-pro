@@ -8,11 +8,13 @@ interface RangeSliderProps {
 }
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
-  const [range, setRange] = useState<[number, number]>([0, duration]);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(duration);
   
   // Update range when duration changes (video loaded)
   useEffect(() => {
-    setRange([0, duration]);
+    setStartTime(0);
+    setEndTime(duration);
     onChange(0, duration);
   }, [duration, onChange]);
 
@@ -30,33 +32,70 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
       .join(':');
   };
 
-  const handleRangeChange = (values: number[]) => {
-    const [start, end] = values as [number, number];
-    setRange([start, end]);
-    onChange(start, end);
+  const handleStartTimeChange = (value: number[]) => {
+    const newStartTime = value[0];
+    // Ensure start time doesn't exceed end time
+    if (newStartTime >= endTime) {
+      setStartTime(Math.max(0, endTime - 1));
+    } else {
+      setStartTime(newStartTime);
+    }
+    
+    onChange(newStartTime < endTime ? newStartTime : Math.max(0, endTime - 1), endTime);
+  };
+
+  const handleEndTimeChange = (value: number[]) => {
+    const newEndTime = value[0];
+    // Ensure end time is not less than start time
+    if (newEndTime <= startTime) {
+      setEndTime(Math.min(duration, startTime + 1));
+    } else {
+      setEndTime(newEndTime);
+    }
+    
+    onChange(startTime, newEndTime > startTime ? newEndTime : Math.min(duration, startTime + 1));
   };
 
   return (
-    <div className="w-full my-4">
-      <div className="mb-2">
-        <p className="text-sm text-gray-600 mb-1">Sélectionner l'extrait :</p>
+    <div className="w-full my-4 space-y-6">
+      <p className="text-sm text-gray-600 mb-2">Sélectionner l'extrait :</p>
+      
+      {/* Start Time Slider */}
+      <div className="space-y-2">
         <div className="flex justify-between">
-          <span className="text-sm font-mono">{formatTime(range[0])}</span>
-          <span className="text-sm font-mono">{formatTime(range[1])}</span>
+          <span className="text-sm text-gray-600">Début sélectionné :</span>
+          <span className="text-sm font-mono text-brand-purple">{formatTime(startTime)}</span>
         </div>
+        <Slider 
+          value={[startTime]} 
+          min={0} 
+          max={duration} 
+          step={1}
+          onValueChange={handleStartTimeChange}
+          className="start-slider"
+        />
       </div>
-      <Slider 
-        defaultValue={[0, duration]} 
-        min={0} 
-        max={duration} 
-        step={1}
-        value={range}
-        onValueChange={handleRangeChange}
-        className="clip-slider-track"
-      />
-      <div className="flex justify-between mt-2">
-        <span className="text-sm text-gray-600">Début</span>
-        <span className="text-sm text-gray-600">Fin</span>
+      
+      {/* End Time Slider */}
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <span className="text-sm text-gray-600">Fin sélectionnée :</span>
+          <span className="text-sm font-mono text-brand-blue">{formatTime(endTime)}</span>
+        </div>
+        <Slider 
+          value={[endTime]} 
+          min={0} 
+          max={duration} 
+          step={1}
+          onValueChange={handleEndTimeChange}
+          className="end-slider"
+        />
+      </div>
+
+      <div className="mt-2 px-1">
+        <div className="text-xs text-gray-500">
+          Durée de l'extrait : <span className="font-semibold">{formatTime(endTime - startTime)}</span>
+        </div>
       </div>
     </div>
   );
