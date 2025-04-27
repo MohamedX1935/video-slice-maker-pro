@@ -13,9 +13,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
   
   // Update range when duration changes (video loaded)
   useEffect(() => {
-    setStartTime(0);
-    setEndTime(duration);
-    onChange(0, duration);
+    if (duration > 0) {
+      setStartTime(0);
+      setEndTime(duration);
+      onChange(0, duration);
+    }
   }, [duration, onChange]);
 
   const formatTime = (seconds: number) => {
@@ -36,8 +38,9 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     const newStartTime = value[0];
     // Ensure start time doesn't exceed end time
     if (newStartTime >= endTime) {
-      setStartTime(Math.max(0, endTime - 1));
-      onChange(Math.max(0, endTime - 1), endTime);
+      const adjustedStartTime = Math.max(0, endTime - 1);
+      setStartTime(adjustedStartTime);
+      onChange(adjustedStartTime, endTime);
     } else {
       setStartTime(newStartTime);
       onChange(newStartTime, endTime);
@@ -48,8 +51,9 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     const newEndTime = value[0];
     // Ensure end time is not less than start time
     if (newEndTime <= startTime) {
-      setEndTime(Math.min(duration, startTime + 1));
-      onChange(startTime, Math.min(duration, startTime + 1));
+      const adjustedEndTime = Math.min(duration, startTime + 1);
+      setEndTime(adjustedEndTime);
+      onChange(startTime, adjustedEndTime);
     } else {
       setEndTime(newEndTime);
       onChange(startTime, newEndTime);
@@ -69,7 +73,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
         <Slider 
           value={[startTime]} 
           min={0} 
-          max={duration} 
+          max={duration || 100} 
           step={1}
           onValueChange={handleStartTimeChange}
           className="start-slider"
@@ -86,7 +90,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
         <Slider 
           value={[endTime]} 
           min={0} 
-          max={duration} 
+          max={duration || 100} 
           step={1}
           onValueChange={handleEndTimeChange}
           className="end-slider"
