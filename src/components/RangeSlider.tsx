@@ -37,11 +37,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     // Ensure start time doesn't exceed end time
     if (newStartTime >= endTime) {
       setStartTime(Math.max(0, endTime - 1));
+      onChange(Math.max(0, endTime - 1), endTime);
     } else {
       setStartTime(newStartTime);
+      onChange(newStartTime, endTime);
     }
-    
-    onChange(newStartTime < endTime ? newStartTime : Math.max(0, endTime - 1), endTime);
   };
 
   const handleEndTimeChange = (value: number[]) => {
@@ -49,11 +49,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
     // Ensure end time is not less than start time
     if (newEndTime <= startTime) {
       setEndTime(Math.min(duration, startTime + 1));
+      onChange(startTime, Math.min(duration, startTime + 1));
     } else {
       setEndTime(newEndTime);
+      onChange(startTime, newEndTime);
     }
-    
-    onChange(startTime, newEndTime > startTime ? newEndTime : Math.min(duration, startTime + 1));
   };
 
   return (
@@ -73,6 +73,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           step={1}
           onValueChange={handleStartTimeChange}
           className="start-slider"
+          aria-label="Sélectionner le début de l'extrait"
         />
       </div>
       
@@ -89,6 +90,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           step={1}
           onValueChange={handleEndTimeChange}
           className="end-slider"
+          aria-label="Sélectionner la fin de l'extrait"
         />
       </div>
 
