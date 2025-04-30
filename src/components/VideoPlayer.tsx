@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Download } from 'lucide-react';
@@ -139,10 +138,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     toast.info("Préparation de l'extrait vidéo...");
     
     try {
-      // First try to use our API if it's running
-      const apiUrl = 'http://localhost:3001/api/clip'; // Update this URL based on where your backend is hosted
+      // URL du serveur backend
+      const apiUrl = 'http://localhost:3001/api/clip';
       
       try {
+        console.log('Envoi de la requête au serveur de découpage:', {
+          videoId,
+          startTime: clipStart,
+          endTime: clipEnd
+        });
+        
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -154,10 +159,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
         });
         
         if (!response.ok) {
-          throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`Erreur serveur: ${response.status} - ${errorText}`);
         }
         
         const blob = await response.blob();
+        
+        if (blob.size === 0) {
+          throw new Error("Le fichier téléchargé est vide");
+        }
+        
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -169,20 +180,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
         
         toast.success("Téléchargement terminé avec succès!");
       } catch (apiError) {
-        // If API fails, fallback to YouTube URL
-        console.error('API error:', apiError);
+        console.error('Erreur API:', apiError);
         toast.error("Le serveur de découpage n'est pas disponible. Redirection vers YouTube.");
         
-        // Create a YouTube URL with start time param as fallback
+        // Fallback: ouvrir YouTube avec le timestamp de départ
         const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clipStart)}`;
         window.open(youtubeUrl, '_blank');
         
-        toast.info("Pour un vrai découpage vidéo, le serveur backend doit être activé. Voir BACKEND_SETUP.md", {
-          duration: 8000,
-        });
+        toast.info(
+          "Pour utiliser le découpage vidéo, veuillez démarrer le serveur backend. " + 
+          "Consultez le fichier BACKEND_SETUP.md pour les instructions d'installation.",
+          { duration: 8000 }
+        );
       }
     } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
+      console.error('Erreur générale lors du téléchargement:', error);
       toast.error(`Échec du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setIsProcessing(false);
