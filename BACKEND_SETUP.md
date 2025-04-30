@@ -50,47 +50,8 @@ The server will start on port 3001 by default (or the port specified in the PORT
 
 ## Connecting the Frontend
 
-Update the VideoPlayer component to use the real API instead of the YouTube fallback:
+The VideoPlayer component in the React application is already configured to:
+1. Try to connect to the backend at `http://localhost:3001/api/clip`
+2. Fall back to a YouTube link if the backend is not available
 
-```tsx
-// In VideoPlayer.tsx
-const handleDownload = async () => {
-  setIsProcessing(true);
-  toast.info("Préparation de l'extrait vidéo...");
-  
-  try {
-    const response = await fetch('http://localhost:3001/api/clip', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        videoId,
-        startTime: clipStart,
-        endTime: clipEnd
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur lors du téléchargement: ${response.status}`);
-    }
-    
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `slicetube-${videoId}-${Math.floor(clipStart)}-${Math.floor(clipEnd)}.mp4`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success("Téléchargement terminé avec succès!");
-  } catch (error) {
-    console.error('Erreur lors du téléchargement:', error);
-    toast.error(`Échec du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
-  } finally {
-    setIsProcessing(false);
-  }
-};
-```
-
-This will connect your frontend to the Node.js backend server for video processing.
+If you want to use a different host or port for your backend, update the `apiUrl` variable in `src/components/VideoPlayer.tsx`.

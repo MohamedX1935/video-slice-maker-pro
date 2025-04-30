@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Download } from 'lucide-react';
@@ -110,7 +111,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
   };
 
   const handleRangeChange = (start: number, end: number) => {
-    console.log("Range changed:", start, end); // Debug: confirm values are updating
     setClipStart(start);
     setClipEnd(end);
     
@@ -139,46 +139,48 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     toast.info("Préparation de l'extrait vidéo...");
     
     try {
-      // Create a YouTube URL with start and end time params
-      // This is a fallback since we don't have a real backend in this project
-      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clipStart)}`;
-      window.open(youtubeUrl, '_blank');
+      // First try to use our API if it's running
+      const apiUrl = 'http://localhost:3001/api/clip'; // Update this URL based on where your backend is hosted
       
-      // Show message to user explaining this is a fallback
-      toast.success("Redirection vers YouTube (Note: le téléchargement direct nécessite un backend)", {
-        duration: 5000,
-      });
-      
-      /* In a real application with a proper backend, we would use this code instead:
-      
-      const response = await fetch('http://localhost:3001/api/clip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          videoId,
-          startTime: clipStart,
-          endTime: clipEnd
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videoId,
+            startTime: clipStart,
+            endTime: clipEnd
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `slicetube-${videoId}-${Math.floor(clipStart)}-${Math.floor(clipEnd)}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast.success("Téléchargement terminé avec succès!");
+      } catch (apiError) {
+        // If API fails, fallback to YouTube URL
+        console.error('API error:', apiError);
+        toast.error("Le serveur de découpage n'est pas disponible. Redirection vers YouTube.");
+        
+        // Create a YouTube URL with start time param as fallback
+        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clipStart)}`;
+        window.open(youtubeUrl, '_blank');
+        
+        toast.info("Pour un vrai découpage vidéo, le serveur backend doit être activé. Voir BACKEND_SETUP.md", {
+          duration: 8000,
+        });
       }
-      
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `slicetube-${videoId}-${Math.floor(clipStart)}-${Math.floor(clipEnd)}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      */
-      
-      toast.info("Pour un vrai découpage vidéo, un backend avec ffmpeg et yt-dlp est nécessaire", {
-        duration: 5000,
-      });
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
       toast.error(`Échec du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
