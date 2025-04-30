@@ -135,21 +135,42 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsProcessing(true);
-    
-    // Simulate processing time
     toast.info("Préparation de l'extrait vidéo...");
     
-    setTimeout(() => {
-      setIsProcessing(false);
-      toast.success("Extrait prêt à télécharger!");
+    try {
+      const response = await fetch('/api/clip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId,
+          startTime: clipStart,
+          endTime: clipEnd
+        })
+      });
       
-      // In a real implementation, we would call the backend to process and download the video
-      // For now, we'll simulate a download by opening a new window with the YouTube URL at the specific timestamp
-      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clipStart)}`;
-      window.open(youtubeUrl, '_blank');
-    }, 3000);
+      if (!response.ok) {
+        throw new Error(`Erreur lors du téléchargement: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `slicetube-${videoId}-${Math.floor(clipStart)}-${Math.floor(clipEnd)}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Téléchargement terminé avec succès!");
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      toast.error(`Échec du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
