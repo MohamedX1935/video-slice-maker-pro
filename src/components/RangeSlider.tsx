@@ -9,16 +9,16 @@ interface RangeSliderProps {
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(100); // Default initial value to prevent blocking
+  const [endTime, setEndTime] = useState(100); // Default initial value
   
-  // Update range ONLY when duration changes (video loaded)
+  // Initialize only when duration changes, not when onChange is called
   useEffect(() => {
     if (duration > 0) {
       setStartTime(0);
       setEndTime(duration);
       onChange(0, duration);
     }
-  }, [duration, onChange]); // Only depends on duration changing
+  }, [duration]); // Removed onChange dependency to prevent reset loops
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -34,39 +34,42 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
       .join(':');
   };
 
-  // Handle start time slider change with proper validation
+  // Handle start time slider change - only updates local state
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartTime = Number(e.target.value);
     
-    // Strict validation: ensure start time is less than end time
+    // Validation: ensure start time is less than end time
     if (newStartTime >= endTime) {
       return; // Prevent invalid state
     }
     
-    // Update state and notify parent component
+    // Update only local state, no onChange call here
     setStartTime(newStartTime);
-    onChange(newStartTime, endTime);
   };
 
-  // Handle end time slider change with proper validation
+  // Handle end time slider change - only updates local state
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEndTime = Number(e.target.value);
     
-    // Strict validation: ensure end time is greater than start time
+    // Validation: ensure end time is greater than start time
     if (newEndTime <= startTime) {
       return; // Prevent invalid state
     }
     
-    // Update state and notify parent component
+    // Update only local state, no onChange call here
     setEndTime(newEndTime);
-    onChange(startTime, newEndTime);
+  };
+  
+  // Only call onChange when slider is released to prevent resets during dragging
+  const handleSliderRelease = () => {
+    onChange(startTime, endTime);
   };
 
   return (
     <div className="w-full my-4 space-y-6">
       <p className="text-sm text-gray-600 mb-2">Sélectionner l'extrait :</p>
       
-      {/* Start Time Slider - Fully controlled with onChange */}
+      {/* Start Time Slider - Controlled with local state only */}
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-gray-600">Début sélectionné :</span>
@@ -79,12 +82,13 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           max={duration || 100} 
           step={1}
           onChange={handleStartTimeChange}
+          onPointerUp={handleSliderRelease}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-purple"
           aria-label="Sélectionner le début de l'extrait"
         />
       </div>
       
-      {/* End Time Slider - Fully controlled with onChange */}
+      {/* End Time Slider - Controlled with local state only */}
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-gray-600">Fin sélectionnée :</span>
@@ -97,6 +101,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ duration, onChange }) => {
           max={duration || 100} 
           step={1}
           onChange={handleEndTimeChange}
+          onPointerUp={handleSliderRelease}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-blue"
           aria-label="Sélectionner la fin de l'extrait"
         />
