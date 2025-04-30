@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Download } from 'lucide-react';
@@ -140,7 +139,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
     toast.info("Préparation de l'extrait vidéo...");
     
     try {
-      const response = await fetch('/api/clip', {
+      // Create a YouTube URL with start and end time params
+      // This is a fallback since we don't have a real backend in this project
+      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(clipStart)}`;
+      window.open(youtubeUrl, '_blank');
+      
+      // Show message to user explaining this is a fallback
+      toast.success("Redirection vers YouTube (Note: le téléchargement direct nécessite un backend)", {
+        duration: 5000,
+      });
+      
+      /* In a real application with a proper backend, we would use this code instead:
+      
+      const response = await fetch('http://localhost:3001/api/clip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -163,8 +174,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoId }) => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      */
       
-      toast.success("Téléchargement terminé avec succès!");
+      toast.info("Pour un vrai découpage vidéo, un backend avec ffmpeg et yt-dlp est nécessaire", {
+        duration: 5000,
+      });
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
       toast.error(`Échec du téléchargement: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
